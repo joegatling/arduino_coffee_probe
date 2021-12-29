@@ -1,9 +1,9 @@
-#include <SPI.h>
+// Temperature Probe 2021 - Trinket M0
+
 #include <Wire.h>
 #include <Thermistor.h>
 #include <NTC_Thermistor.h>
 #include <Adafruit_DotStar.h>
-
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1327.h>
 
@@ -19,7 +19,6 @@
 #define TEMP_COLOR SSD1327_WHITE
 #define GRAPH_COLOR SSD1327_WHITE
 
-
 #define GRID_SPACING_X 40 //pixels
 #define GRID_SPACING_Y 10  //celsius
 
@@ -30,7 +29,6 @@
 #define OLED_RESET     -1 // Reset pin # (or -1 if sharing Arduino reset pin)
 Adafruit_SSD1327 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET, 1000000);
 
-
 // Delay (millis) between polling for temperature
 #define POLLING_DELAY 125
 
@@ -39,53 +37,23 @@ Adafruit_SSD1327 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET, 1000000
 #define DATA_STORE_SIZE SCREEN_WIDTH
 
 // Range of temperatures to display
-
 #define MIN_TEMP max(storedData.Min() - 5, 45)
 #define MAX_TEMP max(storedData.Max() + 5, 110)
 
 #define ERROR_TEMP -100
 
-//#define MIN_TEMP 20
-//#define MAX_TEMP max(storedData.Max() + 5, 30)
-
-#define TEMPERATURE_UNIT 0.01f
-
 CircularBuffer storedData = CircularBuffer(DATA_STORE_SIZE);
 CircularBuffer filteredData = CircularBuffer(DATA_STORE_INTERVAL);
 
-//float storedData[DATA_STORE_SIZE];
-//float filteredData[DATA_STORE_INTERVAL];
-
 int storedDataTimer = 0;
 
-//int storedDataStartIndex = 0;
-//int storedDataCount = 0;
-//
-//int filteredDataStartIndex = 0;
-//int filteredDataCount = 0;
-
-
 Thermistor* thermistor;
-
 Adafruit_DotStar strip = Adafruit_DotStar(1, INTERNAL_DS_DATA, INTERNAL_DS_CLK, DOTSTAR_BGR);
-
-
-// Setup a oneWire instance to communicate with any OneWire devices
-// (not just Maxim/Dallas temperature ICs)
-// OneWire oneWire(ONE_WIRE_BUS);
-
-// Pass our oneWire reference to Dallas Temperature.
-// DallasTemperature sensors(&oneWire);
 
 void setup()
 {
-
   // start serial port
   Serial.begin(57600);
-  // Start up the library
-  //sensors.begin();
-
-  Serial.println("Begin");
 
   thermistor = new NTC_Thermistor(
     A4,
@@ -112,8 +80,6 @@ void setup()
   storedDataTimer = DATA_STORE_INTERVAL + 1;
 }
 
-
-
 void loop()
 {
   display.clearDisplay();
@@ -139,7 +105,7 @@ void loop()
 
   if (storedDataTimer >= DATA_STORE_INTERVAL)
   {
-    storeData(average);
+    storedData.Add(temp);
     storedDataTimer = 0;
   }
   else
@@ -147,19 +113,16 @@ void loop()
     storedData.UpdateLast(average);
   }
 
-  //storedData.OutputToSerial();
   updateDisplay();
   
   delay(POLLING_DELAY);
 }
 
-
 void updateDisplay()
 {
-
-  if (getCurrentTemperature() > MIN_TEMP)
+  if (storedData.Last() > MIN_TEMP)
   {
-    String tempString = String(round(getCurrentTemperature()));
+    String tempString = String(round(storedData.Last()));
     int textSize = 1;
 
     int width = (tempString.length()) * (6 * textSize);
@@ -171,7 +134,7 @@ void updateDisplay()
     display.setTextSize(textSize);           // Normal 1:1 pixel scale
     display.setTextColor(TEMP_COLOR);        // Draw white text
 
-    int y = constrain(getYCoordinateForTemperature(getCurrentTemperature()) - 4, 0, SCREEN_HEIGHT - (8 * textSize));
+    int y = constrain(getYCoordinateForTemperature(storedData.Last()) - 4, 0, SCREEN_HEIGHT - (8 * textSize));
 
     display.setCursor(SCREEN_WIDTH - width, y);
     display.println(tempString);
@@ -181,23 +144,26 @@ void updateDisplay()
     drawBouncingText();
   }
 
+  updateLED();
+  
+  drawDebugData();
+
   display.display();  
 }
 
 void updateLED()
 {
-  if (getCurrentTemperature() > MIN_TEMP)
+  if (storedData.Last() > MIN_TEMP)
   {
-    float t =  max(0.0f, min(1.0f, ((float)getCurrentTemperature() - MIN_TEMP) / (float)(MAX_TEMP - MIN_TEMP)));
+    float t =  max(0.0f, min(1.0f, ((float)storedData.Last() - MIN_TEMP) / (float)(MAX_TEMP - MIN_TEMP)));
     int h = (((360 - 220) * t / 360.0f) + (220 / 360.0f)) * 65536;
 
     strip.setPixelColor(0, strip.ColorHSV(h));
     strip.setBrightness(6);
-    strip.show();
   }
   else
   {
-    if(getCurrentTemperature() < ERROR_TEMP)
+    if(storedData.Last() < ERROR_TEMP)
     {
       strip.setPixelColor(0, 255, 0, 0);
       strip.setBrightness(255);
@@ -206,21 +172,10 @@ void updateLED()
     {
       strip.setBrightness(0);
     }
-      strip.show();
-  }  
-  
+    
+    strip.show();
+  } 
 }
-
-void storeData(float temperature)
-{
-  storedData.Add(temperature);
-}
-
-float getCurrentTemperature()
-{
-  return storedData.Last();
-}
-
 
 void drawGridlines(int offset)
 {
@@ -229,8 +184,6 @@ void drawGridlines(int offset)
   {
     index = storedData.GetStartIndex();
   }
-
-
 
   int x = (SCREEN_WIDTH + offset) - index % GRID_SPACING_X;
 
@@ -245,7 +198,6 @@ void drawGridlines(int offset)
 
   display.setTextSize(1);
   display.setTextColor(GRID_COLOR+2);        // Draw white text
-
 
   while (y < SCREEN_HEIGHT + 10)
   {
@@ -262,7 +214,6 @@ void drawGridlines(int offset)
 
 void drawTemperatureGraph(int offset)
 {
-
   int startX = SCREEN_WIDTH + offset - storedData.GetCount() - 1;
   int currentY = getYCoordinateForTemperature(storedData.Get(0));
 
@@ -275,14 +226,12 @@ void drawTemperatureGraph(int offset)
     currentY = newY;
   }
 
-
-  display.drawLine(startX + storedData.GetCount() , currentY, startX + storedData.GetCount() + 1, getYCoordinateForTemperature(getCurrentTemperature()), GRAPH_COLOR);
-
+  display.drawLine(startX + storedData.GetCount() , currentY, startX + storedData.GetCount() + 1, getYCoordinateForTemperature(storedData.Last()), GRAPH_COLOR);
 }
 
 void drawBouncingText()
 {
-  int currentTemp = round(getCurrentTemperature());
+  int currentTemp = round(storedData.Last());
 
   String tempString = String(currentTemp);
 
@@ -308,58 +257,21 @@ void drawBouncingText()
   display.setTextSize(textSize);           // Normal 1:1 pixel scale
   display.setTextColor(TEMP_COLOR);        // Draw white text
 
-  int y = constrain(getYCoordinateForTemperature(getCurrentTemperature()) - 4, 0, SCREEN_HEIGHT - (8 * textSize));
+  int y = constrain(getYCoordinateForTemperature(storedData.Last()) - 4, 0, SCREEN_HEIGHT - (8 * textSize));
 
   display.setCursor(SCREEN_WIDTH - width - xOffset, y - yOffset);
   display.println(tempString);
 }
 
-//int drawTemperatureText()
-//{
-//  int currentTemp = round(getCurrentTemperature());
-//
-//  String tempString = String(currentTemp);
-//
-//  int xOffset = 0;
-//  int yOffset = 0;
-//
-//  int textSize = 1;
-//
-//  int width = (tempString.length()) * (6 * textSize);
-//
-//  if (currentTemp < MIN_TEMP)
-//  {
-//    if (currentTemp < ERROR_TEMP)
-//    {
-//      textSize = 2;
-//      tempString = "ERROR";
-//    }
-//    else
-//    {  
-//      textSize = 5;    
-//    }
-//
-//    width = (tempString.length()) * (6 * textSize);
-//
-//    int yRange = (SCREEN_HEIGHT - (8 * textSize)) / 2;
-//    int xRange = (SCREEN_WIDTH - width) / 2;
-//
-//
-//    xOffset = xRange + sin(millis() / 10000.0f) * xRange;
-//    yOffset = yRange + sin(millis() / 9100.0f) * yRange;
-//  }
-//
-//  display.setTextSize(textSize);           // Normal 1:1 pixel scale
-//  display.setTextColor(TEMP_COLOR);        // Draw white text
-//
-//  int y = constrain(getYCoordinateForTemperature(getCurrentTemperature()) - 4, 0, SCREEN_HEIGHT - (8 * textSize));
-//
-//  display.setCursor(SCREEN_WIDTH - width - xOffset, y - yOffset);
-//  display.println(tempString);
-//
-//  return width;
-//}
-
+void drawDebugData()
+{
+  display.setTextSize(1);
+  display.setTextColor(SSD1327_WHITE);
+  display.setCursor(0,SCREEN_HEIGHT-10);
+  display.print(storedData.GetCount());
+  display.print(" ");
+  display.println((int)millis()/1000);
+}
 
 int getYCoordinateForTemperature(float temperature)
 {

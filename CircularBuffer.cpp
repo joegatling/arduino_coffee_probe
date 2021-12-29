@@ -32,14 +32,24 @@ void CircularBuffer::UpdateLast(float value)
 
 float CircularBuffer::Get(int index)
 {
-  if(_count == 0)
+  if(_count == 0 || index >= GetCount())
   {
-    return 0;
+    exit(0);
   }
   else
   {  
     return _values[TransformIndex(index)];
   }
+}
+
+float& CircularBuffer::operator[](int index)
+{
+  if(_count == 0 || index >= GetCount())
+  {
+    exit(0);
+  }
+
+  return _values[TransformIndex(index)];
 }
 
 float CircularBuffer::Last()
@@ -75,6 +85,7 @@ float CircularBuffer::Max()
   {
     return 0.0f;
   }
+  
   float result = Get(0);
 
   for(int i = 1; i < _count; ++i)
@@ -127,11 +138,13 @@ float CircularBuffer::Average()
 void CircularBuffer::OutputToSerial()
 {
   Serial.println("Raw Data:");
+  
   for(int i = 0; i < _capacity; ++i)
   {
     Serial.print(_values[i]);
     Serial.print(",");
   }
+  
   Serial.print("Start Index: ");  
   Serial.println(_startIndex);  
   Serial.print("Count: ");  

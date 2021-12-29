@@ -23,6 +23,8 @@ class CircularBuffer
 
     void OutputToSerial();
 
+    float& operator[](int index);
+
   private:
     float* _values = 0;
     int _startIndex = 0;

@@ -15,22 +15,30 @@
 #define B_VALUE                3950
 #define ITERATIONS             3
 
-#define GRID_COLOR 0x1
+#define GRID_COLOR  0x1
+#define MAJOR_GRID_COLOR (SSD1327_WHITE - 0x5)
 #define TEMP_COLOR SSD1327_WHITE
 #define GRAPH_COLOR SSD1327_WHITE
 
-#define GRID_SPACING_X 40 //pixels
-#define GRID_SPACING_Y 10  //celsius
+#define COFFEE_RANGE_MAX 120
+#define COFFEE_RANGE_MIN 95
 
-#define SCREEN_WIDTH 128 // OLED display width, in pixels
-#define SCREEN_HEIGHT 128 // OLED display height, in pixels
+#define GRID_SPACING_X    40 //pixels
+#define GRID_SPACING_Y    10  //celsius
+
+#define SCREEN_WIDTH      128 // OLED display width, in pixels
+#define SCREEN_HEIGHT     128 // OLED display height, in pixels
 
 // Declaration for an SSD1306 display connected to I2C (SDA, SCL pins)
 #define OLED_RESET     -1 // Reset pin # (or -1 if sharing Arduino reset pin)
 Adafruit_SSD1327 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET, 1000000);
 
 // Delay (millis) between polling for temperature
-#define POLLING_DELAY 125
+#define POLLING_DELAY     125
+#define READ_DELAY        10
+
+#define PULSE_MIN 10
+#define PULSE_MAX 32
 
 // One data point will be stored every time this number of reads
 #define DATA_STORE_INTERVAL 16
@@ -45,10 +53,30 @@ Adafruit_SSD1327 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET, 1000000
 CircularBuffer storedData = CircularBuffer(DATA_STORE_SIZE);
 CircularBuffer filteredData = CircularBuffer(DATA_STORE_INTERVAL);
 
+const unsigned char dot_line_128 [] PROGMEM = {
+  0x40, 0x00, 0x80, 0x00, 0x80, 0x00, 0x80, 0x00, 0x80, 0x00, 0x80, 0x00, 0x80, 0x00, 0x80, 0x00, 
+	0x80, 0x00, 0x80, 0x00, 0x80, 0x00, 0x80, 0x00, 0x80, 0x00, 0x80, 0x00, 0x80, 0x00, 0x80, 0x00, 
+	0x80, 0x00, 0x80, 0x00, 0x80, 0x00, 0x80, 0x00, 0x80, 0x00, 0x80, 0x00, 0x80, 0x00, 0x80, 0x00, 
+	0x80, 0x00, 0x80, 0x00, 0x80, 0x00, 0x80, 0x00, 0x80, 0x00, 0x80, 0x00, 0x80, 0x00, 0x80, 0x00, 
+	0x80, 0x00, 0x80, 0x00, 0x80, 0x00, 0x80, 0x00, 0x80, 0x00, 0x80, 0x00, 0x80, 0x00, 0x80, 0x00, 
+	0x80, 0x00, 0x80, 0x00, 0x80, 0x00, 0x80, 0x00, 0x80, 0x00, 0x80, 0x00, 0x80, 0x00, 0x80, 0x00, 
+	0x80, 0x00, 0x80, 0x00, 0x80, 0x00, 0x80, 0x00, 0x80, 0x00, 0x80, 0x00, 0x80, 0x00, 0x80, 0x00, 
+	0x80, 0x00, 0x80, 0x00, 0x80, 0x00, 0x80, 0x00, 0x80, 0x00, 0x80, 0x00, 0x80, 0x00, 0x80
+};
+// 	0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 
+// 	0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55
+// };
+
 int storedDataTimer = 0;
 
 Thermistor* thermistor;
 Adafruit_DotStar strip = Adafruit_DotStar(1, INTERNAL_DS_DATA, INTERNAL_DS_CLK, DOTSTAR_BGR);
+
+unsigned long _lastPollTime = 0;
+unsigned long _lastReadTime = 0;
+
+int readCount = 0;
+float temperature = 0;
 
 void setup()
 {
@@ -67,7 +95,8 @@ void setup()
 
   strip.begin();
 
-  if ( ! display.begin(0x3C) ) {
+  if ( ! display.begin(0x3C) ) 
+  {
     Serial.println("Unable to initialize OLED");
     while (1) yield();
   }
@@ -82,40 +111,47 @@ void setup()
 
 void loop()
 {
-  display.clearDisplay();
-
-  float temp = 0;
-  for (int i = 0; i < ITERATIONS; i++)
+  if(millis() - _lastPollTime > POLLING_DELAY)
   {
-    temp += thermistor->readCelsius();
-    delay(10);
+    if(millis() - _lastReadTime > READ_DELAY)
+    {
+      readCount++;
+      temperature += thermistor->readCelsius();
+      _lastReadTime = millis();
+
+      if(readCount >= ITERATIONS)
+      {
+        _lastPollTime = millis();
+
+        temperature /= ITERATIONS;
+
+        filteredData.Add(temperature);
+
+        temperature = 0;
+        readCount = 0;
+
+        storedDataTimer++;
+
+        display.clearDisplay();
+
+        float average = filteredData.Average();
+
+        if (storedDataTimer >= DATA_STORE_INTERVAL)
+        {
+          storedData.Add(average);
+          storedDataTimer = 0;
+        }
+        else
+        {
+          storedData.UpdateLast(average);
+        }
+
+        updateDisplay();
+      }
+    }
   }
-  temp /= ITERATIONS;
 
-  filteredData.Add(temp);
-  float average = filteredData.Average();
- 
-  Serial.print("temp:");
-  Serial.println(temp);
-  Serial.print("filtered:");
-  Serial.println(average);
-
-  storedDataTimer++;
-  filteredData.Add(temp);
-
-  if (storedDataTimer >= DATA_STORE_INTERVAL)
-  {
-    storedData.Add(temp);
-    storedDataTimer = 0;
-  }
-  else
-  {
-    storedData.UpdateLast(average);
-  }
-
-  updateDisplay();
-  
-  delay(POLLING_DELAY);
+  updateLED();
 }
 
 void updateDisplay()
@@ -124,7 +160,6 @@ void updateDisplay()
   {
     String tempString = String(round(storedData.Last()));
     int textSize = 1;
-
     int width = (tempString.length()) * (6 * textSize);
     int offset = -width - 2;
 
@@ -144,7 +179,6 @@ void updateDisplay()
     drawBouncingText();
   }
 
-  updateLED();
   
   drawDebugData();
 
@@ -155,11 +189,28 @@ void updateLED()
 {
   if (storedData.Last() > MIN_TEMP)
   {
-    float t =  max(0.0f, min(1.0f, ((float)storedData.Last() - MIN_TEMP) / (float)(MAX_TEMP - MIN_TEMP)));
-    int h = (((360 - 220) * t / 360.0f) + (220 / 360.0f)) * 65536;
+    if(storedData.Last() > COFFEE_RANGE_MAX)
+    {
+      strip.setPixelColor(0, 255, 0, 0);  
+    }
+    else if(storedData.Last() < COFFEE_RANGE_MIN)
+    {
+      strip.setPixelColor(0, 0, 0, 255);  
+    }
+    else
+    {
+      strip.setPixelColor(0, 0, 255, 0);  
+    }
 
-    strip.setPixelColor(0, strip.ColorHSV(h));
-    strip.setBrightness(6);
+    // float t =  max(0.0f, min(1.0f, ((float)storedData.Last() - MIN_TEMP) / (float)(MAX_TEMP - MIN_TEMP)));
+    // int h = (((360 - 220) * t / 360.0f) + (220 / 360.0f)) * 65536;
+    //strip.setPixelColor(0, strip.ColorHSV(h));
+
+    float pulse = (sin(millis() / 1000.0f) + 1) / 2.0f;
+    unsigned char brightness = (unsigned char)(PULSE_MIN + pulse * (PULSE_MAX - PULSE_MIN));
+
+    strip.setBrightness(brightness);
+    strip.show();
   }
   else
   {
@@ -186,28 +237,42 @@ void drawGridlines(int offset)
   }
 
   int x = (SCREEN_WIDTH + offset) - index % GRID_SPACING_X;
+  
+  display.setTextColor(GRID_COLOR+2);        // Draw white text
 
-  while (x >= 0)
+  int failsafe = SCREEN_WIDTH;
+  while (x >= 0 && failsafe > 0)
   {
-    display.drawLine(x, 0, x, SCREEN_HEIGHT, GRID_COLOR);
+    display.drawBitmap(x, 0, dot_line_128, 1, SCREEN_HEIGHT, GRID_COLOR);
+
+    //display.drawLine(x, 0, x, SCREEN_HEIGHT, GRID_COLOR);
     x -= GRID_SPACING_X;
+    failsafe--;
   }
 
   float temp = floor(MAX_TEMP / GRID_SPACING_Y) * GRID_SPACING_Y;
   int y = getYCoordinateForTemperature(temp);
 
   display.setTextSize(1);
-  display.setTextColor(GRID_COLOR+2);        // Draw white text
 
-  while (y < SCREEN_HEIGHT + 10)
+  failsafe = SCREEN_HEIGHT;
+  while (y < SCREEN_HEIGHT + 10 && failsafe > 0)
   {
+    display.drawLine(0, y, SCREEN_WIDTH, y, GRID_COLOR+1);
     display.setCursor(0, y - 8);    
     display.println((int)temp);
-    
-    display.drawLine(0, y, SCREEN_WIDTH, y, 0x2);
+    //display.drawLine(0, y+1, SCREEN_WIDTH, y+1, GRID_COLOR);
+
     temp -= GRID_SPACING_Y;
     y = getYCoordinateForTemperature(temp);
+    failsafe--;
   }
+
+  y = getYCoordinateForTemperature(COFFEE_RANGE_MAX);
+  display.drawLine(0, y, SCREEN_WIDTH + offset, y, MAJOR_GRID_COLOR);
+
+  y = getYCoordinateForTemperature(COFFEE_RANGE_MIN);
+  display.drawLine(0, y, SCREEN_WIDTH + offset, y, MAJOR_GRID_COLOR);
 
   display.drawLine(SCREEN_WIDTH + offset, 0, SCREEN_WIDTH + offset, SCREEN_HEIGHT, 0x2);
 }
@@ -265,12 +330,12 @@ void drawBouncingText()
 
 void drawDebugData()
 {
-  display.setTextSize(1);
-  display.setTextColor(SSD1327_WHITE);
-  display.setCursor(0,SCREEN_HEIGHT-10);
-  display.print(storedData.GetCount());
-  display.print(" ");
-  display.println((int)millis()/1000);
+  // display.setTextSize(1);
+  // display.setTextColor(SSD1327_WHITE);
+  // display.setCursor(0,SCREEN_HEIGHT-10);
+  // display.print(storedData.GetCount());
+  // display.print(" ");
+  // display.println((int)millis()/1000);
 }
 
 int getYCoordinateForTemperature(float temperature)

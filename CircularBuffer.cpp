@@ -3,9 +3,11 @@
 #include <stdlib.h> 
 #include <Arduino.h>
     
-CircularBuffer::CircularBuffer(int capacity) 
+CircularBuffer::CircularBuffer(int capacity):
+_count(0),
+_startIndex(0),
+_capacity(capacity)
 {
-  _capacity = capacity;
   _values = (float*)malloc(sizeof(float) * capacity);
 }
 
@@ -36,10 +38,8 @@ float CircularBuffer::Get(int index)
   {
     exit(0);
   }
-  else
-  {  
-    return _values[TransformIndex(index)];
-  }
+
+  return _values[TransformIndex(index)];
 }
 
 float& CircularBuffer::operator[](int index)

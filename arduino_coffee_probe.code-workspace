@@ -1,0 +1,12 @@
+{
+	"folders": [
+		{
+			"path": "../arduino_coffee_probe"
+		},
+		{
+			"name": "230402-191110-adafruit_trinket_m0",
+			"path": "."
+		}
+	],
+	"settings": {}
+}

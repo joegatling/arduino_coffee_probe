@@ -1,0 +1,101 @@
+//
+// !!! WARNING !!! AUTO-GENERATED FILE!
+// PLEASE DO NOT MODIFY IT AND USE "platformio.ini":
+// https://docs.platformio.org/page/projectconf/section_env_build.html#build-flags
+//
+{
+    "configurations": [
+        {
+            "name": "PlatformIO",
+            "includePath": [
+                "/Users/joegatling/Documents/git/arduino_coffee_probe/include",
+                "/Users/joegatling/Documents/git/arduino_coffee_probe/src",
+                "/Users/joegatling/Documents/git/arduino_coffee_probe/.pio/libdeps/adafruit_trinket_m0/Adafruit DotStar",
+                "/Users/joegatling/Documents/git/arduino_coffee_probe/.pio/libdeps/adafruit_trinket_m0/Adafruit SSD1327",
+                "/Users/joegatling/Documents/git/arduino_coffee_probe/.pio/libdeps/adafruit_trinket_m0/Adafruit GFX Library",
+                "/Users/joegatling/Documents/git/arduino_coffee_probe/.pio/libdeps/adafruit_trinket_m0/Adafruit BusIO",
+                "/Users/joegatling/.platformio/packages/framework-arduino-samd-adafruit/libraries/Wire",
+                "/Users/joegatling/.platformio/packages/framework-arduino-samd-adafruit/libraries/SPI",
+                "/Users/joegatling/.platformio/packages/framework-arduino-samd-adafruit/libraries/Adafruit_ZeroDMA",
+                "/Users/joegatling/.platformio/packages/framework-arduino-samd-adafruit/libraries/Adafruit_ZeroDMA/utility",
+                "/Users/joegatling/Documents/git/arduino_coffee_probe/.pio/libdeps/adafruit_trinket_m0/NTC_Thermistor/src",
+                "/Users/joegatling/Documents/git/arduino_coffee_probe/.pio/libdeps/adafruit_trinket_m0/Adafruit NeoPixel",
+                "/Users/joegatling/.platformio/packages/framework-arduino-samd-adafruit/libraries/Adafruit_TinyUSB_Arduino/src",
+                "/Users/joegatling/.platformio/packages/framework-cmsis@2.50400.181126/CMSIS/Core/Include",
+                "/Users/joegatling/.platformio/packages/framework-cmsis-atmel/CMSIS/Device/ATMEL",
+                "/Users/joegatling/.platformio/packages/framework-arduino-samd-adafruit/cores/arduino",
+                "/Users/joegatling/.platformio/packages/framework-arduino-samd-adafruit/libraries/Adafruit_TinyUSB_Arduino/src/arduino",
+                "/Users/joegatling/.platformio/packages/framework-cmsis@2.50400.181126/CMSIS/DSP/Include",
+                "/Users/joegatling/.platformio/packages/framework-arduino-samd-adafruit/variants/trinket_m0",
+                "/Users/joegatling/.platformio/packages/framework-arduino-samd-adafruit/libraries/CI_Tests",
+                "/Users/joegatling/.platformio/packages/framework-arduino-samd-adafruit/libraries/HID",
+                "/Users/joegatling/.platformio/packages/framework-arduino-samd-adafruit/libraries/I2S/src",
+                "/Users/joegatling/.platformio/packages/framework-arduino-samd-adafruit/libraries/SAMD_AnalogCorrection/src",
+                "/Users/joegatling/.platformio/packages/framework-arduino-samd-adafruit/libraries/SDU/src",
+                "/Users/joegatling/.platformio/packages/framework-arduino-samd-adafruit/libraries/Servo/src",
+                "/Users/joegatling/.platformio/packages/framework-arduino-samd-adafruit/libraries/USBHost/src",
+                ""
+            ],
+            "browse": {
+                "limitSymbolsToIncludedHeaders": true,
+                "path": [
+                    "/Users/joegatling/Documents/git/arduino_coffee_probe/include",
+                    "/Users/joegatling/Documents/git/arduino_coffee_probe/src",
+                    "/Users/joegatling/Documents/git/arduino_coffee_probe/.pio/libdeps/adafruit_trinket_m0/Adafruit DotStar",
+                    "/Users/joegatling/Documents/git/arduino_coffee_probe/.pio/libdeps/adafruit_trinket_m0/Adafruit SSD1327",
+                    "/Users/joegatling/Documents/git/arduino_coffee_probe/.pio/libdeps/adafruit_trinket_m0/Adafruit GFX Library",
+                    "/Users/joegatling/Documents/git/arduino_coffee_probe/.pio/libdeps/adafruit_trinket_m0/Adafruit BusIO",
+                    "/Users/joegatling/.platformio/packages/framework-arduino-samd-adafruit/libraries/Wire",
+                    "/Users/joegatling/.platformio/packages/framework-arduino-samd-adafruit/libraries/SPI",
+                    "/Users/joegatling/.platformio/packages/framework-arduino-samd-adafruit/libraries/Adafruit_ZeroDMA",
+                    "/Users/joegatling/.platformio/packages/framework-arduino-samd-adafruit/libraries/Adafruit_ZeroDMA/utility",
+                    "/Users/joegatling/Documents/git/arduino_coffee_probe/.pio/libdeps/adafruit_trinket_m0/NTC_Thermistor/src",
+                    "/Users/joegatling/Documents/git/arduino_coffee_probe/.pio/libdeps/adafruit_trinket_m0/Adafruit NeoPixel",
+                    "/Users/joegatling/.platformio/packages/framework-arduino-samd-adafruit/libraries/Adafruit_TinyUSB_Arduino/src",
+                    "/Users/joegatling/.platformio/packages/framework-cmsis@2.50400.181126/CMSIS/Core/Include",
+                    "/Users/joegatling/.platformio/packages/framework-cmsis-atmel/CMSIS/Device/ATMEL",
+                    "/Users/joegatling/.platformio/packages/framework-arduino-samd-adafruit/cores/arduino",
+                    "/Users/joegatling/.platformio/packages/framework-arduino-samd-adafruit/libraries/Adafruit_TinyUSB_Arduino/src/arduino",
+                    "/Users/joegatling/.platformio/packages/framework-cmsis@2.50400.181126/CMSIS/DSP/Include",
+                    "/Users/joegatling/.platformio/packages/framework-arduino-samd-adafruit/variants/trinket_m0",
+                    "/Users/joegatling/.platformio/packages/framework-arduino-samd-adafruit/libraries/CI_Tests",
+                    "/Users/joegatling/.platformio/packages/framework-arduino-samd-adafruit/libraries/HID",
+                    "/Users/joegatling/.platformio/packages/framework-arduino-samd-adafruit/libraries/I2S/src",
+                    "/Users/joegatling/.platformio/packages/framework-arduino-samd-adafruit/libraries/SAMD_AnalogCorrection/src",
+                    "/Users/joegatling/.platformio/packages/framework-arduino-samd-adafruit/libraries/SDU/src",
+                    "/Users/joegatling/.platformio/packages/framework-arduino-samd-adafruit/libraries/Servo/src",
+                    "/Users/joegatling/.platformio/packages/framework-arduino-samd-adafruit/libraries/USBHost/src",
+                    ""
+                ]
+            },
+            "defines": [
+                "PLATFORMIO=60106",
+                "ARDUINO_TRINKET_M0",
+                "CRYSTALLESS",
+                "ADAFRUIT_TRINKET_M0",
+                "ARM_MATH_CM0PLUS",
+                "__SAMD21E18A__",
+                "ARDUINO=10805",
+                "F_CPU=48000000L",
+                "USBCON",
+                "USB_VID=0x239A",
+                "USB_PID=0x801E",
+                "USB_PRODUCT=\"Adafruit Trinket M0\"",
+                "USB_MANUFACTURER=\"Adafruit\"",
+                "ARDUINO_ARCH_SAMD",
+                "USB_CONFIG_POWER=100",
+                "ARDUINO_SAMD_ADAFRUIT",
+                ""
+            ],
+            "cStandard": "c11",
+            "cppStandard": "c++11",
+            "compilerPath": "/Users/joegatling/.platformio/packages/toolchain-gccarmnoneeabi/bin/arm-none-eabi-gcc",
+            "compilerArgs": [
+                "-mcpu=cortex-m0plus",
+                "-mthumb",
+                ""
+            ]
+        }
+    ],
+    "version": 4
+}

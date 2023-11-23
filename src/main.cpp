@@ -73,155 +73,14 @@ unsigned long _lastReadTime = 0;
 int readCount = 0;
 float temperature = 0;
 
-void setup()
+int getYCoordinateForTemperature(float temperature)
 {
-  // start serial port
-  Serial.begin(57600);
+  float distancePerDegree = (float)SCREEN_HEIGHT / (float)(MAX_TEMP - MIN_TEMP);
+  float baseLine = MAX_TEMP * distancePerDegree;
 
-  thermistor = new NTC_Thermistor(
-    A4,
-    REFERENCE_RESISTANCE,
-    NOMINAL_RESISTANCE,
-    NOMINAL_TEMPERATURE,
-    B_VALUE
-  );
-
-  Serial.println("Thermistor Initialzied");
-
-  strip.begin();
-
-  if ( ! display.begin(0x3C) ) 
-  {
-    Serial.println("Unable to initialize OLED");
-    while (1) yield();
-  }
-  else
-  {
-    Serial.println("Begin");
-  }
-
-  display.setRotation(0);
-  storedDataTimer = DATA_STORE_INTERVAL + 1;
+  return (int)(baseLine - temperature * distancePerDegree);
 }
 
-void loop()
-{
-  if(millis() - _lastPollTime > POLLING_DELAY)
-  {
-    if(millis() - _lastReadTime > READ_DELAY)
-    {
-      readCount++;
-      temperature += thermistor->readCelsius();
-      _lastReadTime = millis();
-
-      if(readCount >= ITERATIONS)
-      {
-        _lastPollTime = millis();
-
-        temperature /= ITERATIONS;
-
-        filteredData.Add(temperature);
-
-        temperature = 0;
-        readCount = 0;
-
-        storedDataTimer++;
-
-        display.clearDisplay();
-
-        float average = filteredData.Average();
-
-        if (storedDataTimer >= DATA_STORE_INTERVAL)
-        {
-          storedData.Add(average);
-          storedDataTimer = 0;
-        }
-        else
-        {
-          storedData.UpdateLast(average);
-        }
-
-        updateDisplay();
-      }
-    }
-  }
-
-  updateLED();
-}
-
-void updateDisplay()
-{
-  if (storedData.Last() > MIN_TEMP)
-  {
-    String tempString = String(round(storedData.Last()));
-    int textSize = 1;
-    int width = (tempString.length()) * (6 * textSize);
-    int offset = -width - 2;
-
-    drawGridlines(offset);
-    drawTemperatureGraph(offset);
-
-    display.setTextSize(textSize);           // Normal 1:1 pixel scale
-    display.setTextColor(TEMP_COLOR);        // Draw white text
-
-    int y = constrain(getYCoordinateForTemperature(storedData.Last()) - 4, 0, SCREEN_HEIGHT - (8 * textSize));
-
-    display.setCursor(SCREEN_WIDTH - width, y);
-    display.println(tempString);
-  }
-  else
-  {
-    drawBouncingText();
-  }
-
-  
-  drawDebugData();
-
-  display.display();  
-}
-
-void updateLED()
-{
-  if (storedData.Last() > MIN_TEMP)
-  {
-    if(storedData.Last() > COFFEE_RANGE_MAX)
-    {
-      strip.setPixelColor(0, 255, 0, 0);  
-    }
-    else if(storedData.Last() < COFFEE_RANGE_MIN)
-    {
-      strip.setPixelColor(0, 0, 0, 255);  
-    }
-    else
-    {
-      strip.setPixelColor(0, 0, 255, 0);  
-    }
-
-    // float t =  max(0.0f, min(1.0f, ((float)storedData.Last() - MIN_TEMP) / (float)(MAX_TEMP - MIN_TEMP)));
-    // int h = (((360 - 220) * t / 360.0f) + (220 / 360.0f)) * 65536;
-    //strip.setPixelColor(0, strip.ColorHSV(h));
-
-    float pulse = (sin(millis() / 1000.0f) + 1) / 2.0f;
-    unsigned char brightness = (unsigned char)(PULSE_MIN + pulse * (PULSE_MAX - PULSE_MIN));
-
-    strip.setBrightness(brightness);
-    strip.show();
-  }
-  else
-  {
-    if(storedData.Last() < ERROR_TEMP)
-    {
-      strip.setPixelColor(0, 255, 0, 0);
-      strip.setBrightness(255);
-    }
-    else
-    {
-      strip.setBrightness(0);
-    }
-    
-    strip.show();
-  } 
-}
 
 void drawGridlines(int offset)
 {
@@ -333,10 +192,154 @@ void drawDebugData()
   // display.println((int)millis()/1000);
 }
 
-int getYCoordinateForTemperature(float temperature)
-{
-  float distancePerDegree = (float)SCREEN_HEIGHT / (float)(MAX_TEMP - MIN_TEMP);
-  float baseLine = MAX_TEMP * distancePerDegree;
 
-  return (int)(baseLine - temperature * distancePerDegree);
+void updateDisplay()
+{
+  if (storedData.Last() > MIN_TEMP)
+  {
+    String tempString = String(round(storedData.Last()));
+    int textSize = 1;
+    int width = (tempString.length()) * (6 * textSize);
+    int offset = -width - 2;
+
+    drawGridlines(offset);
+    drawTemperatureGraph(offset);
+
+    display.setTextSize(textSize);           // Normal 1:1 pixel scale
+    display.setTextColor(TEMP_COLOR);        // Draw white text
+
+    int y = constrain(getYCoordinateForTemperature(storedData.Last()) - 4, 0, SCREEN_HEIGHT - (8 * textSize));
+
+    display.setCursor(SCREEN_WIDTH - width, y);
+    display.println(tempString);
+  }
+  else
+  {
+    drawBouncingText();
+  }
+
+  
+  drawDebugData();
+
+  display.display();  
+}
+
+void updateLED()
+{
+  if (storedData.Last() > MIN_TEMP)
+  {
+    if(storedData.Last() > COFFEE_RANGE_MAX)
+    {
+      strip.setPixelColor(0, 255, 0, 0);  
+    }
+    else if(storedData.Last() < COFFEE_RANGE_MIN)
+    {
+      strip.setPixelColor(0, 0, 0, 255);  
+    }
+    else
+    {
+      strip.setPixelColor(0, 0, 255, 0);  
+    }
+
+    // float t =  max(0.0f, min(1.0f, ((float)storedData.Last() - MIN_TEMP) / (float)(MAX_TEMP - MIN_TEMP)));
+    // int h = (((360 - 220) * t / 360.0f) + (220 / 360.0f)) * 65536;
+    //strip.setPixelColor(0, strip.ColorHSV(h));
+
+    float pulse = (sin(millis() / 1000.0f) + 1) / 2.0f;
+    unsigned char brightness = (unsigned char)(PULSE_MIN + pulse * (PULSE_MAX - PULSE_MIN));
+
+    strip.setBrightness(brightness);
+    strip.show();
+  }
+  else
+  {
+    if(storedData.Last() < ERROR_TEMP)
+    {
+      strip.setPixelColor(0, 255, 0, 0);
+      strip.setBrightness(255);
+    }
+    else
+    {
+      strip.setBrightness(0);
+    }
+    
+    strip.show();
+  } 
+}
+
+
+void setup()
+{
+  // start serial port
+  Serial.begin(57600);
+
+  thermistor = new NTC_Thermistor(
+    A4,
+    REFERENCE_RESISTANCE,
+    NOMINAL_RESISTANCE,
+    NOMINAL_TEMPERATURE,
+    B_VALUE
+  );
+
+  Serial.println("Thermistor Initialzied");
+
+  strip.begin();
+
+  if ( ! display.begin(0x3C) ) 
+  {
+    Serial.println("Unable to initialize OLED");
+    while (1) yield();
+  }
+  else
+  {
+    Serial.println("Begin");
+  }
+
+  display.setRotation(0);
+  storedDataTimer = DATA_STORE_INTERVAL + 1;
+}
+
+void loop()
+{
+  if(millis() - _lastPollTime > POLLING_DELAY)
+  {
+    if(millis() - _lastReadTime > READ_DELAY)
+    {
+      readCount++;
+      temperature += thermistor->readCelsius();
+      _lastReadTime = millis();
+
+      if(readCount >= ITERATIONS)
+      {
+        _lastPollTime = millis();
+
+        temperature /= ITERATIONS;
+
+        filteredData.Add(temperature);
+
+        temperature = 0;
+        readCount = 0;
+
+        storedDataTimer++;
+
+        display.clearDisplay();
+
+        float average = filteredData.Average();
+
+        if (storedDataTimer >= DATA_STORE_INTERVAL)
+        {
+          storedData.Add(average);
+          storedDataTimer = 0;
+        }
+        else
+        {
+          storedData.UpdateLast(average);
+        }
+
+        updateDisplay();
+      }
+    }
+  }
+
+  updateLED();
 }

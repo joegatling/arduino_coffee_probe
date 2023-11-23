@@ -27,8 +27,8 @@ class CircularBuffer
 
   private:
     float* _values = 0;
-    int _startIndex = 0;
     int _count = 0;
+    int _startIndex = 0;
     int _capacity = 0;
 
     int TransformIndex(int index);

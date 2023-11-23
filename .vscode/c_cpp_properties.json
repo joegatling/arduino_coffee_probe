@@ -69,7 +69,7 @@
                 ]
             },
             "defines": [
-                "PLATFORMIO=60106",
+                "PLATFORMIO=60111",
                 "ARDUINO_TRINKET_M0",
                 "CRYSTALLESS",
                 "ADAFRUIT_TRINKET_M0",
@@ -87,8 +87,8 @@
                 "ARDUINO_SAMD_ADAFRUIT",
                 ""
             ],
-            "cStandard": "c11",
-            "cppStandard": "c++11",
+            "cStandard": "gnu11",
+            "cppStandard": "gnu++11",
             "compilerPath": "/Users/joegatling/.platformio/packages/toolchain-gccarmnoneeabi/bin/arm-none-eabi-gcc",
             "compilerArgs": [
                 "-mcpu=cortex-m0plus",

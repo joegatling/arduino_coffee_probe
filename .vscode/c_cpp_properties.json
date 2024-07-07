@@ -10,6 +10,8 @@
             "includePath": [
                 "/Users/joegatling/Documents/git/arduino_coffee_probe/include",
                 "/Users/joegatling/Documents/git/arduino_coffee_probe/src",
+                "/Users/joegatling/Documents/git/arduino_coffee_probe/.pio/libdeps/adafruit_trinket_m0/Adafruit SleepyDog Library",
+                "/Users/joegatling/Documents/git/arduino_coffee_probe/.pio/libdeps/adafruit_trinket_m0/Adafruit SleepyDog Library/utility",
                 "/Users/joegatling/Documents/git/arduino_coffee_probe/.pio/libdeps/adafruit_trinket_m0/Adafruit DotStar",
                 "/Users/joegatling/Documents/git/arduino_coffee_probe/.pio/libdeps/adafruit_trinket_m0/Adafruit SSD1327",
                 "/Users/joegatling/Documents/git/arduino_coffee_probe/.pio/libdeps/adafruit_trinket_m0/Adafruit GFX Library",
@@ -41,6 +43,8 @@
                 "path": [
                     "/Users/joegatling/Documents/git/arduino_coffee_probe/include",
                     "/Users/joegatling/Documents/git/arduino_coffee_probe/src",
+                    "/Users/joegatling/Documents/git/arduino_coffee_probe/.pio/libdeps/adafruit_trinket_m0/Adafruit SleepyDog Library",
+                    "/Users/joegatling/Documents/git/arduino_coffee_probe/.pio/libdeps/adafruit_trinket_m0/Adafruit SleepyDog Library/utility",
                     "/Users/joegatling/Documents/git/arduino_coffee_probe/.pio/libdeps/adafruit_trinket_m0/Adafruit DotStar",
                     "/Users/joegatling/Documents/git/arduino_coffee_probe/.pio/libdeps/adafruit_trinket_m0/Adafruit SSD1327",
                     "/Users/joegatling/Documents/git/arduino_coffee_probe/.pio/libdeps/adafruit_trinket_m0/Adafruit GFX Library",
@@ -69,7 +73,7 @@
                 ]
             },
             "defines": [
-                "PLATFORMIO=60111",
+                "PLATFORMIO=60115",
                 "ARDUINO_TRINKET_M0",
                 "CRYSTALLESS",
                 "ADAFRUIT_TRINKET_M0",

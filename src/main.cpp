@@ -4,6 +4,7 @@
 #include <Adafruit_DotStar.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1327.h>
+#include <Adafruit_SleepyDog.h>
 
 #include "CircularBuffer.h"
 
@@ -17,6 +18,8 @@
 #define MAJOR_GRID_COLOR (SSD1327_WHITE - 0x5)
 #define TEMP_COLOR SSD1327_WHITE
 #define GRAPH_COLOR SSD1327_WHITE
+#define GRAPH_FILL  0x2
+
 
 #define COFFEE_RANGE_MAX 120
 #define COFFEE_RANGE_MIN 95
@@ -29,7 +32,7 @@
 
 // Declaration for an SSD1306 display connected to I2C (SDA, SCL pins)
 #define OLED_RESET     -1 // Reset pin # (or -1 if sharing Arduino reset pin)
-Adafruit_SSD1327 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET, 1000000);
+Adafruit_SSD1327 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
 // Delay (millis) between polling for temperature
 #define POLLING_DELAY     125
@@ -140,12 +143,18 @@ void drawTemperatureGraph(int offset)
   {
     int newY = getYCoordinateForTemperature(storedData.Get(i));
 
-    display.drawLine(startX + i - 1 , currentY, startX + i, newY, GRAPH_COLOR);
+    display.drawLine(startX + i - 1 , currentY+1, startX + i, newY+1, GRAPH_COLOR);
+    //display.drawLine(startX + i - 1 , currentY-1, startX + i, newY-1, GRAPH_COLOR/2);    
+    display.drawLine(startX + i, newY+1, startX + i, SCREEN_HEIGHT, GRAPH_FILL);
+    display.drawLine(startX + i - 1 , currentY+1, startX + i, newY, GRAPH_COLOR);
 
     currentY = newY;
   }
 
-  display.drawLine(startX + storedData.GetCount() , currentY, startX + storedData.GetCount() + 1, getYCoordinateForTemperature(storedData.Last()), GRAPH_COLOR);
+  int y = getYCoordinateForTemperature(storedData.Last());
+  display.drawLine(startX + storedData.GetCount() , currentY-1, startX + storedData.GetCount() + 1, y - 1, GRAPH_COLOR);
+  display.drawLine(startX + storedData.GetCount() , currentY+1, startX + storedData.GetCount(), SCREEN_HEIGHT, GRAPH_FILL);
+  display.drawLine(startX + storedData.GetCount() , currentY, startX + storedData.GetCount() + 1, y, GRAPH_COLOR);
 }
 
 void drawBouncingText()
@@ -184,12 +193,7 @@ void drawBouncingText()
 
 void drawDebugData()
 {
-  // display.setTextSize(1);
-  // display.setTextColor(SSD1327_WHITE);
-  // display.setCursor(0,SCREEN_HEIGHT-10);
-  // display.print(storedData.GetCount());
-  // display.print(" ");
-  // display.println((int)millis()/1000);
+  // Nothing needed here for now
 }
 
 
@@ -285,7 +289,7 @@ void setup()
 
   strip.begin();
 
-  if ( ! display.begin(0x3C) ) 
+  if ( ! display.begin(0x3C, false) ) 
   {
     Serial.println("Unable to initialize OLED");
     while (1) yield();
@@ -297,6 +301,8 @@ void setup()
 
   display.setRotation(0);
   storedDataTimer = DATA_STORE_INTERVAL + 1;
+
+  Watchdog.enable(4000);
 }
 
 void loop()
@@ -342,4 +348,6 @@ void loop()
   }
 
   updateLED();
+
+  Watchdog.reset();
 }
